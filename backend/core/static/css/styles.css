@@ -1,0 +1,12 @@
+/* Add your custom styles here */
+body {
+    background-color: #f8f9fa; /* Example: light gray background */
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.nav-link {
+    color: #007bff !important; /* Example: make nav link color blue */
+}

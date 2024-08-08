@@ -1,0 +1,5 @@
+{% if histogram_html %}
+    {{ histogram_html|safe }}
+{% else %}
+    <p>No data available for the selected dataset and market.</p>
+{% endif %}

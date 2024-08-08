@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Model{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1>Model List</h1>
+    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addMLModelModal">Add Model</button>
+        
+    <!-- Add Model Modal -->
+    <div class="modal fade" id="addMLModelModal" tabindex="-1" aria-labelledby="addMLModelModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMLModelModalLabel">Add Model</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{% url 'mlmodel-add' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="name">Model Name:</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="market">Select Market:</label>
+                            <select class="form-control" id="market" name="market" required>
+                                {% for market in markets %}
+                                    <option value="{{ market.id }}">{{ market.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Model</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <table class="table table-striped">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Market</th>
+            <th scope="col">Model</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for model in models %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ model.market.name }}</td>
+                <td>{{ model.name }}</td>
+                <td>
+                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editMLModelModal{{ model.id }}">Edit</button>
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteMLModelModal{{ model.id }}">Delete</button>
+                </td>
+            </tr>
+            <!-- Edit Model Modal -->
+            <div class="modal fade" id="editMLModelModal{{ model.id }}" tabindex="-1" aria-labelledby="editMLModelModalLabel{{ model.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editMLModelModalLabel{{ model.id }}">Edit Model</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form method="post" action="{% url 'mlmodel-edit' model.id %}">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <label for="name">Model Name:</label>
+                                    <input type="text" class="form-control" id="name" name="name" value="{{ model.name }}" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save changes</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Model Modal -->
+            <div class="modal fade" id="deleteMLModelModal{{ model.id }}" tabindex="-1" aria-labelledby="deleteMLModelModalLabel{{ model.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteMLModelModalLabel{{ model.id }}">Delete Model</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Are you sure you want to delete the model, <strong>{{ model.name }}</strong> from <strong>{{ model.market.name }}</strong>?</p>
+                        </div>
+                        <div class="modal-footer">
+                            <form method="post" action="{% url 'mlmodel-delete' model.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </tbody>
+      </table>
+</div>
+{% endblock %}

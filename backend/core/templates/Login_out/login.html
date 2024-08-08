@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load active_tag %}
+    <meta charset="UTF-8">
+    {% load static %}
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+<section class="d-flex justify-content-center align-items-center" style="min-height: 100vh; background: linear-gradient(135deg, #f0f8ff, #add8e6);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5 p-4">
+                <div class="card shadow-lg ">
+                    <div class="card-body p-4">
+                        <h1 class= "text-center mb-2" style = "color:blue;">LOB</h1>
+                        <h6 class="text-center mb-3">Sign In</h6>
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        <form method="post" action="{% url 'login' %}">
+                            {% csrf_token %}
+                            <!-- Email input with improved autocomplete -->
+                            <div class="form-outline mb-4">
+                                <label class="form-label" for="email_input">Email address <span style="color: red;">*</span></label>
+                                <input type="email" id="email_input" name="email" class="form-control form-control-lg" autocomplete="email" required />
+                            </div>
+
+                            <!-- Password input with autocomplete for new passwords -->
+                            <div class="form-outline mb-4 position-relative">
+                                <label class="form-label" for="password_input">Password <span style="color: red;">*</span></label>
+                                <input type="password" id="password_input" name="password" class="form-control form-control-lg" autocomplete="new-password" required /> 
+                            </div>
+
+                            <!-- Accessibility improvements for remembering user login -->
+                            <div class="form-check mb-4">
+                                <input class="form-check-input" type="checkbox" value="" id="Remember_user" checked aria-label="Remember me" />
+                                <label class="form-check-label" for="Remember_user"> Remember me </label>
+                            </div>
+
+                            <!-- Forgot password link -->
+                            <div class="text-center mb-4">
+                                <a href="{% url 'password_reset' %}" class="text-decoration-none">Forgot password?</a>
+                            </div>
+
+                            <!-- Submit button with improved accessibility and centering -->
+                            <div class="d-grid mb-4">
+                                <button type="submit" class="btn btn-primary btn-lg" >Sign in</button>
+                            </div>
+
+                            <!-- Social media sign-in links with enhanced aria labels -->
+                            <div class="text-center">
+                                <p class="mb-2">Not a member? <a href="{% url 'register' %}" class="text-decoration-none">Register</a></p>
+                                {% comment %} <p class="mb-4">or sign up with:</p>
+                                <button type="button" class="btn btn-link btn-floating mx-1" aria-label="Sign up with Facebook">
+                                    <i class="fab fa-facebook-f"></i>
+                                </button>
+
+                                <button type="button" class="btn btn-link btn-floating mx-1" aria-label="Sign up with Google">
+                                    <i class="fab fa-google"></i>
+                                </button>
+
+                                <button type="button" class="btn btn-link btn-floating mx-1" aria-label="Sign up with Twitter">
+                                    <i class="fab fa-twitter"></i>
+                                </button> {% endcomment %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

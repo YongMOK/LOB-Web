@@ -1,0 +1,484 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Main{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Select Market:</h2>
+    <form method="post" id="market-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="market">Market:</label>
+            <select class="form-control" id="market" name="market" required>
+                {% for market in markets %}
+                    <option value="{{ market.name }}" {% if selected_market and selected_market.name == market.name %}selected{% endif %}>{{ market.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary mt-3">Show Datasets</button>
+        </div>
+    </form>
+    
+    {% if datasets %}
+    <div class="mt-4">
+        <h2>Datasets for {{ selected_market.name }}:</h2>
+        <p> You can also upload a new dataset for this market: </p>
+        <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#uploadDatasetModal">Upload Dataset</button>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Training File</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Uploaded At</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dataset in datasets %}
+                    <tr>
+                        <th>{{ forloop.counter }}</th>
+                        <td>{{ dataset.training_file.name }}</td>
+                        <td>{{ dataset.date }}</td>
+                        <td>{{ dataset.uploaded_at }}</td>
+                        <td>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#Visualization" onclick="setDatasetIdVisualization('{{ dataset.id }}', '{{ selected_market.name }}', '{{ dataset.training_file.name }}', '{{ dataset.date }}')">Visualization</button>
+                            <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#trainModelModal" onclick="setDatasetId('{{ dataset.id }}', '{{ selected_market.name }}')">Train</button>
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#predictModelModal" onclick="setDatasetIdForPrediction('{{ dataset.id }}', '{{ selected_market.name }}')">Prediction</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="mt-4">
+        <h2>Datasets for {{ selected_market.name }}:</h2>
+        <p>No datasets available for this market.</p>
+    </div>
+    {% endif %}
+</div>
+<!-- Upload Dataset Modal -->
+<div class="modal fade" id="uploadDatasetModal" tabindex="-1" aria-labelledby="uploadDatasetModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadDatasetModalLabel">Upload Dataset</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'upload_dataset' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="market" value="{{ selected_market.id }}">
+                    <div class="form-group">
+                        <label for="training_file">Training File:</label>
+                        <input type="file" class="form-control" id="training_file" name="training_file" accept=".csv,.txt" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Date:</label>
+                        <input type="date" class="form-control" id="date" name="date" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload Dataset</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Train Model Modal -->
+<div class="modal fade" id="trainModelModal" tabindex="-1" aria-labelledby="trainModelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="trainModelModalLabel">Train Model</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="train-model-form">
+                    {% csrf_token %}
+                    <input type="hidden" id="dataset-id" name="dataset_id">
+                    <input type="hidden" id="market-name" name="market_name">
+                    <div class="form-group">
+                        <label for="existing_model">Select Existing Model:</label>
+                        <select class="form-control" id="existing_model" name="model_name">
+                            <option value="">Select Model</option>
+                        </select>
+                    </div>
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" value="" id="newModelCheck">
+                        <label class="form-check-label" for="newModelCheck">
+                            Add New Model
+                        </label>
+                    </div>
+                    <div class="form-group mt-3" id="newModelGroup" style="display: none;">
+                        <label for="model_name">Model Name:</label>
+                        <input type="text" class="form-control" id="model_name" name="new_model_name">
+                    </div>
+                    <div class="form-group">
+                        <label for="k_value">K Value:</label>
+                        <input type="number" class="form-control" id="k_value" name="k" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Train Model</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Predict Model Modal -->
+<div class="modal fade" id="predictModelModal" tabindex="-1" aria-labelledby="predictModelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="predictModelModalLabel">Predict Model</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="predict-model-form">
+                    {% csrf_token %}
+                    <input type="hidden" id="predict-dataset-id" name="dataset_id">
+                    <input type="hidden" id="predict-market-name" name="market_name">
+                    <div class="form-group">
+                        <label for="predict_model_name">Model Name:</label>
+                        <select class="form-control" id="predict_model_name" name="model_name" required>
+                            <option value="">Select Model</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="predict_k_value">K Value:</label>
+                        <input type="number" class="form-control" id="predict_k_value" name="k" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Predict</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- The Modal of prediction result -->
+<div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resultModalLabel">Prediction Results</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 id="predictedAccuracy"></h6>
+                <h6>Classification Report</h6>
+                <div id="classificationReportTable" class="table-responsive"></div>
+                <h6>Confusion Matrix</h6>
+                <div id="confusionMatrixTable" class="table-responsive"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- The Modal for Visualization -->
+
+
+<!-- Modal for Visualization -->
+<div class="modal fade" id="Visualization" tabindex="-1" aria-labelledby="visualizationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="visualizationModalLabel">Visualization Dataset</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="visualization-market">Market :</label>
+                    <p id = "visualization-market"></p>
+                </div>
+                <div class="form-group">
+                    <label for="visualization-dataset">Dataset :</label>
+                    <p id = "visualization-dataset"></p>
+                </div>
+                <div class="form-group">
+                    <label for="visualization-date">Date of dataset :</label>
+                    <p id="visualization-date"></p>
+                </div>
+                <form id="Visualization-model-form">
+                    {% csrf_token %}
+                    <input type="hidden" id="Visualization-dataset-id" name="dataset_id">
+                    <input type="hidden" id="Visualization-market-name" name="market_name">
+                    <div class="form-group">
+                        <label for="k_value_visualiation">K Value:</label>
+                        <input type="range" class="form-range" min="0" max="200" id="k_value_visualiation" name="k" required>
+                        <div class="value-display">
+                            Selected K Value: <span id="rangeValue">50</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Visualize</button>
+                </form>
+                <!-- Placeholder for the histogram -->
+                <div id="histogram-content" class="mt-2 d-flex justify-content-center"></div>
+                <br></br>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- jQuery and Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.2/js/bootstrap.bundle.min.js"></script>
+
+<!-- Include d3.js and mpld3.js -->
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://mpld3.github.io/js/mpld3.v0.5.10.js"></script>
+<script>
+    function setDatasetId(datasetId, marketName) {
+        document.getElementById("dataset-id").value = datasetId;
+        document.getElementById("market-name").value = marketName;
+        fetchModelNames(marketName, 'existing_model');
+    }
+    
+    function setDatasetIdForPrediction(datasetId, marketName) {
+        document.getElementById("predict-dataset-id").value = datasetId;
+        document.getElementById("predict-market-name").value = marketName;
+        fetchModelNames(marketName, 'predict_model_name');
+    }
+    
+    function fetchModelNames(marketName, elementId) {
+        fetch(`/model_recommendations/${marketName}/`)
+            .then(response => response.json())
+            .then(data => {
+                const select = document.getElementById(elementId);
+                select.innerHTML = '<option value="">Select Model</option>';
+                data.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.text = name;
+                    select.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error("Error fetching model names:", error);
+            });
+    }
+    
+    document.getElementById('newModelCheck').addEventListener('change', function () {
+        const newModelGroup = document.getElementById('newModelGroup');
+        if (this.checked) {
+            newModelGroup.style.display = 'block';
+        } else {
+            newModelGroup.style.display = 'none';
+        }
+    });
+    
+    document.addEventListener('DOMContentLoaded', function () {
+        const trainModelForm = document.getElementById('train-model-form');
+        if (trainModelForm) {
+            trainModelForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                const form = event.target;
+                const formData = new FormData(trainModelForm);
+                const trainButton = form.querySelector('button[type="submit"]');
+                trainButton.innerHTML = 'Training...';
+                trainButton.disabled = true;
+                
+                function trainModel(forceRetrain = false) {
+                    if (forceRetrain) {
+                        formData.append('force_retrain', true);
+                    }
+    
+                    fetch('{% url "modelparameter-train" %}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.result) {
+                            alert('Success: ' + data.result.status);
+                            location.reload();
+                        } else if (data.already_trained) {
+                            if (confirm(data.message + " Do you want to retrain it?")) {
+                                trainModel(true);
+                            } else {
+                                trainButton.innerHTML = 'Train Model';
+                                trainButton.disabled = false;
+                            }
+                        } else {
+                            alert('Unexpected response: ' + JSON.stringify(data));
+                            trainButton.innerHTML = 'Train Model';
+                            trainButton.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while training the model.');
+                        trainButton.innerHTML = 'Train Model';
+                        trainButton.disabled = false;
+                    });
+                }
+                
+                trainModel();
+            });
+        }
+    });
+    
+    //........................................................................................................
+    document.getElementById("predict-model-form").addEventListener("submit", function(event){
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const predictBtn = form.querySelector('button[type="submit"]');
+        predictBtn.innerHTML = 'Predicting...';
+        predictBtn.disabled = true;
+    
+        fetch("{% url 'prediction-predict' %}",{
+            method: "POST",
+            headers: {
+                "X-CSRFToken": formData.get('csrfmiddlewaretoken')
+            },
+            body: formData,
+        }).then(response => response.json())
+        .then(data =>{
+            if(data.result){
+                console.log(data.result)
+                console.log("Get data...........")
+                const report = data.result.classification_report;
+                const matrix = data.result.confusion_matrix;
+                const accuracy = data.result.acuracy;
+                document.getElementById("predictedAccuracy").innerHTML = "Prediction accuracy : " + accuracy;
+                console.log("Make table................")
+                document.getElementById("classificationReportTable").innerHTML = generateReportTable(report);
+                document.getElementById("confusionMatrixTable").innerHTML = generateMatrixTable(matrix);
+                
+                console.log("Result...............")
+                const resultModal = new bootstrap.Modal(document.getElementById("resultModal"));
+                resultModal.show();
+                predictBtn.innerHTML = 'Predict';
+                predictBtn.disabled = false;
+    
+            }else{
+                console.error(data.message)
+                alert(data.message || "Failed to predict.");
+                predictBtn.innerHTML = 'Predict';
+                predictBtn.disabled = false;
+            }
+        }).catch(error =>{
+            console.error("Error: ", error);
+            alert("An error occurred while predicting.");
+            predictBtn.innerHTML = 'Predict';
+            predictBtn.disabled = false;
+        });
+    
+        // Function to generate classification report table
+        function generateReportTable(report){
+            let table = "<table class='table table-bordered'>";
+            table += "<thead><tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1-Score</th><th>Support</th></tr></thead>";
+            table += "<tbody>";
+            for (let cls in report) {
+                if (typeof report[cls] === 'object') {
+                    table += "<tr>";
+                    table += "<td>" + cls + "</td>";
+                    table += "<td>" + (report[cls].precision !== undefined ? report[cls].precision.toFixed(2) : '') + "</td>";
+                    table += "<td>" + (report[cls].recall !== undefined ? report[cls].recall.toFixed(2) : '') + "</td>";
+                    table += "<td>" + (report[cls]['f1-score'] !== undefined ? report[cls]['f1-score'].toFixed(2) : '') + "</td>";
+                    table += "<td>" + (report[cls].support !== undefined ? report[cls].support : '') + "</td>";
+                    table += "</tr>";
+                }
+                }
+            table += "</tbody></table>";
+            return table;
+        }
+        
+        // Function to generate confusion matrix table
+        function generateMatrixTable(matrix){
+            let table = '<table class="table table-bordered"><thead><tr>';
+            table += '<th></th>';
+            for (let i = 0; i < matrix.length; i++) {
+                table += `<th>Class ${i + 1}</th>`;
+            }
+            table += '</tr></thead><tbody>';
+            let i = 0;
+            matrix.forEach(row => {
+                table += '<tr>';
+                table += `<td> Class ${i + 1}</th>`
+                row.forEach(cell => {
+                    table += `<td>${cell}</td>`;
+                });
+                table += '</tr>';
+            });
+            table += '</tbody></table>';
+            return table;
+        }
+        // Close the modal if the user clicks outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('myModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    });
+
+    //Visualization javascript path............................................................................:
+    document.addEventListener('DOMContentLoaded', function() {
+        var slider = document.getElementById("k_value_visualiation");
+        var output = document.getElementById("rangeValue");
+
+        slider.value = 50;
+        output.textContent = slider.value; // Display the default slider value
+        console.log("Initial k= ", slider.value);
+
+        // Update the current slider value (each time you drag the slider handle)
+        slider.oninput = function() {
+            output.textContent = this.value;
+            console.log("Updated k= ", this.value);
+        };
+
+        // Handle the form submission
+        document.getElementById('Visualization-model-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            var datasetId = document.getElementById('Visualization-dataset-id').value;
+            var marketName = document.getElementById("Visualization-market-name").value;
+            var kValue = document.getElementById("k_value_visualiation").value;
+            console.log("Submitted k= ", kValue);
+            console.log("Dataset ID: ", datasetId);
+            console.log("Market Name: ", marketName);
+
+            // Construct the URL for the fetch request
+            var url = `/data_visualization/${datasetId}/${marketName}/${kValue}/`;
+            console.log("Constructed URL: ", url);
+
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(data => {
+                console.log("Response received", data);
+                // Load the response data (histogram) into the histogram content div
+                var histogramContent = document.getElementById('histogram-content');
+                histogramContent.innerHTML = data;
+
+                // Find and evaluate the embedded script to ensure mpld3 draws the figure
+                var scriptTags = histogramContent.getElementsByTagName('script');
+                for (var i = 0; i < scriptTags.length; i++) {
+                    eval(scriptTags[i].innerText);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+
+    function setDatasetIdVisualization(datasetId, marketName, datasetName,date) {
+        document.getElementById('Visualization-dataset-id').value = datasetId;
+        document.getElementById('Visualization-market-name').value = marketName;
+        document.getElementById('visualization-market').innerText = marketName;
+        document.getElementById('visualization-dataset').innerText = datasetName;
+        document.getElementById('visualization-date').innerText = date;
+    }
+</script>
+{% endblock %}

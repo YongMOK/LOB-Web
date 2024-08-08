@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block title %}Dataset{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Select Market:</h2>
+    <form method="post" id="market-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="market">Market:</label>
+            <select class="form-control" id="market" name="market" required>
+                {% for market in markets %}
+                    <option value="{{ market.name }}" {% if selected_market and selected_market.name == market.name %}selected{% endif %}>{{ market.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary mt-3">Show Datasets</button>
+        </div>
+    </form>
+
+    {% if selected_market %}
+        {% if datasets %}
+            <div class="mt-4">
+                <h2>Datasets for {{ selected_market.name }}:</h2>
+                <p>You can also upload a new dataset for this market:</p>
+                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#uploadDatasetModal">Upload Dataset</button>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Training File</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Uploaded At</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dataset in datasets %}
+                            <tr>
+                                <th>{{ forloop.counter }}</th>
+                                <td>{{ dataset.training_file.name }}</td>
+                                <td>{{ dataset.date }}</td>
+                                <td>{{ dataset.uploaded_at }}</td>
+                                <td>
+                                    <!-- Edit Button -->
+                                    <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editDatasetModal-{{ dataset.id }}">Edit</button>
+                                    <!-- Delete Button -->
+                                    <form method="post" action="{% url 'dataset-list' %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="delete_dataset_id" value="{{ dataset.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <!-- Edit Dataset Modal -->
+                            <div class="modal fade" id="editDatasetModal-{{ dataset.id }}" tabindex="-1" aria-labelledby="editDatasetModalLabel-{{ dataset.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editDatasetModalLabel-{{ dataset.id }}">Edit Dataset Date</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form method="post" action="{% url 'dataset-list' %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="dataset_id" value="{{ dataset.id }}">
+                                                <div class="form-group">
+                                                    <label for="date">Date:</label>
+                                                    <input type="date" class="form-control" id="date" name="date" value="{{ dataset.date }}" required>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="mt-4">
+                <h2>Datasets for {{ selected_market.name }}:</h2>
+                <p>No datasets available for this market.</p>
+                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#uploadDatasetModal">Upload Dataset</button>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+
+<!-- Upload Dataset Modal -->
+<div class="modal fade" id="uploadDatasetModal" tabindex="-1" aria-labelledby="uploadDatasetModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadDatasetModalLabel">Upload Dataset</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'dataset-list' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="market_id" value="{{ selected_market.id }}">
+                    <div class="form-group">
+                        <label for="training_file">Training File:</label>
+                        <input type="file" class="form-control" id="training_file" name="training_file" accept=".csv,.txt" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Date:</label>
+                        <input type="date" class="form-control" id="date" name="date" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Upload Dataset</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
