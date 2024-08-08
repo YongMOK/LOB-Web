@@ -1,0 +1,10 @@
+# Ignore everything
+*
+
+# But not these directories
+!/backend/
+!/frontend/
+
+
+# Optionally, ignore media files  within web
+/backend/media/
