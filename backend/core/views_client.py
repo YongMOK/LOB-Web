@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from .models import Market, Results_Client
 from django.contrib.auth.decorators import login_required
+from datetime import datetime
 
 @login_required
 def client(request):
@@ -21,3 +22,13 @@ def client(request):
         'selected_market': selected_market,
         'results': results,
     })
+    
+def generate_data_for_prediction(open_houre, clos_houre):
+    time = datetime.now()
+    if time < open_houre:
+        return {"message": f"This market haven't opened yet. Please wait until {open_houre}"}
+    elif time > clos_houre:
+        return {"message": f"This market is closed now. Please try again later."}
+    else:
+        return 0
+    

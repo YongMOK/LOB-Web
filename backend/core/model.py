@@ -81,5 +81,3 @@ def train_test_with_uploaded_file(model_name, training_data, testing_data, k):
     except Exception as e:
         
         return {"error": str(e)}
-
-def 

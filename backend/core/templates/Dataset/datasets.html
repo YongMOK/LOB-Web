@@ -2,19 +2,23 @@
 {% block title %}Dataset{% endblock %}
 {% block content %}
 <div class="container mt-4">
-    <h2>Select Market:</h2>
-    <form method="post" id="market-form">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="market">Market:</label>
-            <select class="form-control" id="market" name="market" required>
-                {% for market in markets %}
-                    <option value="{{ market.name }}" {% if selected_market and selected_market.name == market.name %}selected{% endif %}>{{ market.name }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-primary mt-3">Show Datasets</button>
-        </div>
-    </form>
+    {% if markets %}
+        <h2>Select Market:</h2>
+        <form method="post" id="market-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="market">Market:</label>
+                <select class="form-control" id="market" name="market" required>
+                    {% for market in markets %}
+                        <option value="{{ market.name }}" {% if selected_market and selected_market.name == market.name %}selected{% endif %}>{{ market.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary mt-3">Show Datasets</button>
+            </div>
+        </form>
+    {% else %}
+        <h2>No markets available.</h2>
+    {% endif %}
 
     {% if selected_market %}
         {% if datasets %}

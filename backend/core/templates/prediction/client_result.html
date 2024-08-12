@@ -38,12 +38,13 @@
                 {% endfor %}
             </select>
             <button type="submit" class="btn btn-primary mt-3">View Prediction</button>
+
         </div>
     </form>
 
     {% if selected_market %}
     	{% if results %}
-            <p>The last prediction by admin for {{ selected_market }} is on {{ results.upload_at }}. Here is our prediction</p>
+            {% comment %} <p>The last prediction by admin for {{ selected_market }} is on {{ results.upload_at }}. Here is our prediction</p> {% endcomment %}
             
             <div class="container mt-4" id="view_results" >
                 <h2>Mid-Price Movement Chart</h2>

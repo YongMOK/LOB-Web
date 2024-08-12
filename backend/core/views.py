@@ -32,6 +32,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import MinMaxScaler
 import joblib
+from django.db import IntegrityError
 
 # ML functions
 def read_dataset(file_path):
@@ -130,19 +131,32 @@ class MarketViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='add')
     def add_market(self, request):
         name = request.POST.get('name')
+        start_time = request.POST.get('start_time')
+        end_time = request.POST.get('end_time')
         if name:
-            Market.objects.create(name=name)
+            Market.objects.create(name=name, end_time=end_time, start_time=start_time)
             return HttpResponseRedirect(reverse('market-list'))
         return render(request, 'Market/market.html',{'error':'Market name is required'})
     @action(detail=True, methods=['post'], url_path='edit')	
-    def edit_market(self, request, pk):
-        market = get_object_or_404(Market,pk=pk)
+    def add_market(self, request):
         name = request.POST.get('name')
+        start_time = request.POST.get('start_time')
+        end_time = request.POST.get('end_time')
+
         if name:
-            market.name = name
-            market.save()
-            return HttpResponseRedirect(reverse('market-list'))
-        return render(request, 'Market/market.html', {'error': 'Market name is required'})
+            try:
+                Market.objects.create(name=name, start_time=start_time, end_time=end_time)
+                return HttpResponseRedirect(reverse('market-list'))
+            except IntegrityError:
+                markets = Market.objects.all()
+                error_message = f'Market with name "{name}" already exists.'
+                return render(request, 'Market/market.html', {
+                    'markets': markets,
+                    'error': error_message,
+                })
+        else:
+            return render(request, 'Market/market.html', {'error': 'Market name is required'})
+
     @action(detail=True, methods=['post'], url_path='delete')
     def delete_market(self, request,pk):
         market = get_object_or_404(Market, pk=pk)

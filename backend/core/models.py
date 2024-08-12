@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
+from datetime import time
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -52,9 +53,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 class Market(models.Model):
     name = models.CharField(max_length=50, unique=True)
+    start_time = models.TimeField(auto_now_add=False, blank=False, default=time(10, 30))
+    end_time = models.TimeField(auto_now_add=False, blank=False, default=time(18, 0))
     
     def __str__(self):
-        return self.name
+        return f"Market : {self.name}, open time: {self.start_time}, end time: {self.end_time}"
 
 class Dataset(models.Model):
     market = models.ForeignKey(Market, related_name='datasets', on_delete=models.CASCADE)
@@ -75,7 +78,7 @@ class ProcessedDataset(models.Model):
         return f"{self.dataset.market.name} - {self.dataset.date} - Processed"
 
 class MLModel(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return f"{self.name} model"

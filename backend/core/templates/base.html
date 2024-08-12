@@ -69,6 +69,9 @@
                         {% if user.is_staff %}
                             {% if request.session.is_admin %}
                                 <li class="nav-item">
+                                    <a class="nav-link" href="{% url 'admin:index' %}">Admin</a>
+                                </li>
+                                <li class="nav-item">
                                     <a class="nav-link {% active request 'market-list' %}" href="{% url 'market-list' %}">Markets</a>
                                 </li>
                                 <li class="nav-item">

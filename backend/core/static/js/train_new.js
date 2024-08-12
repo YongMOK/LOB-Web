@@ -3,12 +3,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectAllCheckbox = document.getElementById('select-all');
     const checkboxes = document.querySelectorAll('.model-checkbox');
     const trainButton = document.querySelector('#train-model-form button[type="submit"]');
+    const cancelledButton = document.getElementById('canceledButton');
 
     let selectedMarket = null;
     let selectedModels = [];
     let datasets = [];
     let bestK = null;
     let finalResults = {};
+    let cancelRequest = false;
 
     const weights = {
         accuracy: 0.4,
@@ -31,6 +33,14 @@ document.addEventListener('DOMContentLoaded', function () {
             datasets = fetchedDatasets;
         });
     }
+    cancelledButton.addEventListener('click',()=>{
+        cancelRequest = true;
+        trainButton.style.display = 'block';
+        console.log('cancelling...');
+        alert('Please wait for cancellation because some processes have already sent to the server and it is running. Alternatively, you can refresh the page!')
+        cancelledButton.style.display = 'none';
+        
+    });
 
     // Step 2: Handle "Select All" checkbox
     function handleSelectAll() {
@@ -64,6 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Step 5: Handle form submission and initiate the training process
     async function handleFormSubmit(event) {
         event.preventDefault();
+        cancelRequest = false;
         const formData = new FormData(trainForm);
 
         selectedMarket = document.getElementById('market').value;
@@ -78,6 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
         datasets = await fetchDatasets(selectedMarket);
         document.getElementById('training-steps').style.display = 'block';
         trainButton.style.display = 'none';
+        cancelledButton.style.display = 'block';
 
         await findBestK(formData);
         await processAllDatasets(datasets);
@@ -123,6 +135,10 @@ document.addEventListener('DOMContentLoaded', function () {
     async function processAllDatasets(datasets) {
         document.getElementById('step2').style.display = 'block';
         for (let dataset of datasets) {
+            if (cancelRequest){
+                console.log('Process canceled.');
+                return;
+            }
             await preprocessDataset(dataset);
         }
         const processingFinish = createMessage(`.............Finished processing dataset............`, 'step2');
@@ -159,6 +175,10 @@ document.addEventListener('DOMContentLoaded', function () {
     async function trainAllModels() {
         document.getElementById('step3').style.display = 'block';
         for (let model of selectedModels) {
+            if (cancelRequest){
+                console.log('Training canceled.');
+                return;
+            }
             await trainModel(model);
         }
     }
@@ -166,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function () {
     async function trainModel(model) {
         const url = `/incremental_train_model/${selectedMarket}/${model}/`;
         const modelTrainingMessage = document.createElement('div');
-        const trainingMessage = document.createElement('h3');
+        const trainingMessage = document.createElement('h4');
         trainingMessage.textContent = `Training model with ${model} :`;
         modelTrainingMessage.appendChild(trainingMessage);
         document.getElementById('step3').appendChild(modelTrainingMessage);
@@ -214,9 +234,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Step 9: Show results and identify the best model
     function showResultsAndBestModel() {
+        if (cancelRequest){
+            console.log('Results shown canceled.');
+            return;
+        }
         document.getElementById('step4').style.display = 'block';
         document.getElementById('step4').innerHTML = '<h3>Step 4: Results:</h3>';
-
+        
         const table = createResultsTable();
         const bestModel = findBestModel();
         document.getElementById('step4').appendChild(table);
