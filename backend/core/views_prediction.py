@@ -1,13 +1,12 @@
 from django.shortcuts import render, get_object_or_404
-from .models import Market, Dataset, MLModel, ModelParameter, BestModel, Results_Client
+from .models import Market, Dataset, MLModel, ModelParameter, BestModel, Results_Client, Dataset_Prediction
 import numpy as np
 import pandas as pd
 import joblib
 from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 from .views import *
-from datetime import datetime
-import json
+from dateutil import parser
 
 def prediction(request):
     markets = Market.objects.all()
@@ -35,20 +34,27 @@ def upload_predictions(request):
         k = int(request.POST.get('best_k'))
         prediction_file = request.FILES.get('predicting_file')
         if prediction_file and market_name:
+            market = get_object_or_404(Market, name = market_name)
+            print("Uploading prediction",prediction_file)
             try:
+                print('Error..........')
                 if prediction_file.name.endswith('.csv'):
                     data = pd.read_csv(prediction_file)
                 else:
                     data = read_txt(prediction_file)
 
                 # Preprocess dataset
+                dataset_prediction = Dataset_Prediction.objects.create(market=market, predicting_file=prediction_file)
+                print(data)
                 df_cleaned = clean_dataframe(data)
                 df_normalized = normalize_dataframe(df_cleaned)
+                
 
                 X_test = feature_for_k_events(df_normalized, k)
+                print('X_test', X_test)
                 result = predictions_model(best_model, X_test, k)
                 result_df = create_result_dataframe(data.iloc[:, 0], result, k)
-                save_results_to_client(market_name, result_df)
+                save_results_to_client(market, dataset_prediction,result_df)
                 
 
                 return JsonResponse({
@@ -87,13 +93,12 @@ def read_txt(uploaded_file):
         return None
 
 def create_result_dataframe(timestamps, predictions, k):
-    timestamps = pd.to_datetime(timestamps)
-    last_timestamp = timestamps.iloc[-1]
+    timestamps = [parser.parse(str(ts)) for ts in timestamps.tolist()]
+    last_timestamp = timestamps[-1]
     additional_timestamp = last_timestamp + pd.Timedelta(seconds=1.5 * k)
 
-    new_timestamp = timestamps.tolist() + [additional_timestamp]
+    new_timestamp = timestamps + [additional_timestamp]
     predictions = predictions.tolist()
-    print("predictions", predictions)
     new_prediction = [0] * k + predictions
 
     predictions_accumulator = np.add.accumulate(new_prediction)
@@ -102,9 +107,8 @@ def create_result_dataframe(timestamps, predictions, k):
         'timestamp': new_timestamp,
         'prediction': predictions_accumulator.tolist()
     })
-    print(result_df)
     return result_df
 
-def save_results_to_client(market_name, results):
-    market = get_object_or_404(Market, name=market_name)
-    Results_Client.objects.create(market=market, result=results.to_json(orient='records'))
+
+def save_results_to_client(market, dataset_prediction, results):
+    Results_Client.objects.create(market=market, dataset_prediction = dataset_prediction, result=results.to_json(orient='records'))

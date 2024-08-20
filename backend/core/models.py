@@ -66,7 +66,7 @@ class Dataset(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.market.name} - {self.training_file.name} - {self.date} - uploaded at {self.uploaded_at}"
+        return f"{self.market.name} - {self.date} - uploaded at {self.uploaded_at}"
 
 class ProcessedDataset(models.Model):
     dataset = models.ForeignKey(Dataset, related_name='processed_versions', on_delete=models.CASCADE)
@@ -122,8 +122,19 @@ class BestModel(models.Model):
     def __str__(self):
         return f"Best model for {self.market.name} - {self.model.name} selected at {self.save_at}"
     
+class Dataset_Prediction(models.Model):
+    market = models.ForeignKey(Market, related_name='datasets_prediction', on_delete=models.CASCADE)
+    predicting_file = models.FileField(upload_to="datasets_prediction/", validators=[FileExtensionValidator(['csv', 'txt'])])
+    date = models.DateField(default=timezone.now)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.market.name} - {self.predicting_file.name} - {self.date}"
 
 class Results_Client(models.Model):
     market = models.ForeignKey(Market, related_name='result_client', on_delete=models.CASCADE)
+    dataset_prediction = models.ForeignKey(Dataset_Prediction,related_name='result_client', on_delete=models.CASCADE)
     result = models.JSONField()
     upload_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"{self.market.name}  - predicting at {self.upload_at}"

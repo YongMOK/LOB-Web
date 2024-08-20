@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser,Market, Dataset, ProcessedDataset, MLModel, ModelParameter, Prediction, Evaluation, BestModel
+from .models import (CustomUser,Market, Dataset, ProcessedDataset, MLModel, ModelParameter, 
+                     Prediction, Evaluation, BestModel, Dataset_Prediction, Results_Client)
 
 
 class CustomUserAdmin(UserAdmin):
@@ -31,3 +32,5 @@ admin.site.register(ModelParameter)
 admin.site.register(Evaluation)
 admin.site.register(Prediction)
 admin.site.register(BestModel)
+admin.site.register(Dataset_Prediction)
+admin.site.register(Results_Client)
