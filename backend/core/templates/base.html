@@ -10,21 +10,20 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        .circle-name {
-            display: inline-block;
-            width: 45px;
-            height: 45px;
-            line-height: 40px;
-            border-radius: 50%;
-            background-color: #947916;
-            color: white;
-            text-align: center;
-            font-weight: bold;
-            margin-right: 10px;
+        /* Adjust dropdown background and text color */
+        .dropdown-menu {
+            background-color: white;
+            color: black; /* Change text color if needed */
+        }
+
+        /* Optional: Adjust the icon size or spacing */
+        .navbar-nav .nav-item .fas.fa-user {
+            margin-right: 8px; /* Adjust spacing if needed */
         }
         body, html {
             height: 100%;
             margin: 0;
+            padding: 0;
         }
         .wrapper {
             display: flex;
@@ -33,9 +32,15 @@
         }
         .content {
             flex: 1;
+            padding: 20px;
+            overflow-y: auto; /* Scrollable content */
+            min-height: 800px; /* Increased content height */
         }
         .footer {
-            background-color: #481694;
+            background-color: #00417f;
+            color: white;
+            text-align: center;
+            padding: 20px;
         }
         .cta-button {
             background-color: #947916;
@@ -49,24 +54,55 @@
             margin: 4px 2px;
             cursor: pointer;
         }
+        .footer-links {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+        }
+        .footer-links div,
+        .footer-links ul {
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .footer-links ul {
+            list-style: none;
+        }
+        .footer-links li {
+            display: inline;
+            padding: 0 10px;
+        }
+        .navbar-fixed-top {
+            background-color: #00417f;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1030; /* Ensure navbar is above other content */
+        }
+        /* Padding to ensure content is not hidden behind the fixed navbar */
+        .content-wrapper {
+            padding-top: 80px; /* Adjust based on the actual height of your navbar */
+        }
     </style>
     {% block head %}{% endblock %}
 </head>
 <body>
-    {% block navbar %}
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #481694;">
-        <div class="container-fluid">
-            {% if user.is_authenticated %}
-                <a class="navbar-brand" href="{% url 'home' %}">LOB</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link {% active request 'home' %}" aria-current="page" href="{% url 'home' %}">Home</a>
-                        </li>
-                        {% if user.is_staff %}
+    <header>
+        {% block navbar %}
+        <nav class="navbar navbar-expand-lg navbar-dark navbar-fixed-top">
+            <div class="container-fluid">
+                {% if user.is_authenticated %}
+                    <a class="navbar-brand" href="{% url 'home' %}">LOB</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link {% active request 'home' %}" aria-current="page" href="{% url 'home' %}">Home</a>
+                            </li>
+                            {% if user.is_staff %}
                             {% if request.session.is_admin %}
                                 <li class="nav-item">
                                     <a class="nav-link" href="{% url 'admin:index' %}">Admin</a>
@@ -86,41 +122,78 @@
                             {% endif %}
                             <li class="nav-item">
                                 <a class="nav-link {% active request 'client_result' %}" href="{% url 'client_result' %}">Result</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <p>{{ user.email}}</p>
+                                    <i class="fas fa-user fa-lg"></i> <!-- User icon -->
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="userDropdown" style="background-color: white;">
+                                    <li><a class="dropdown-item" href="#">Settings</a></li>
+                                    <li><a class="dropdown-item" href="#">Profile</a></li>
+                                </ul>
                             </li>
-                        {% endif %}
-                    </ul>
-                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0 ">
-                        <li class="nav-item">
-                            <span class="circle-name">{{ user.email|slice:":3" }}</span>
-                        </li>
-                        <li class="nav-item">
-                            <form class="d-flex ms-auto" method="post" action="{% url 'logout' %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger mt-1 ">Logout</button>
-                            </form>
-                        </li>
-                    </ul>
+                            <li class="nav-item">
+                                <form class="d-flex ms-auto mt-2" method="post" action="{% url 'logout' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
+                {% endif %}
+            </div>
+        </nav>
+        {% endblock %}
+    </header>
+    <div class="wrapper">
+        <div class="content-wrapper">
+            <div class="content">
+                {% block content %}
+                <!-- Page content goes here -->
+                {% endblock %}
+            </div>
+            <footer class="footer">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <h5>Contact Us</h5>
+                            <p>123 Business Rd, Business City, 98765</p>
+                            <p>Email: info@example.com</p>
+                            <p>Phone: (123) 456-7890</p>
+                        </div>
+                        <div class="col mb-3">
+                            <h5>Social media</h5>
+                            <ul class="nav flex-column">
+                              <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-white">Facebook</a></li>
+                              <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-white">LinkedIn</a></li>
+                              <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-white">Twitter</a></li>
+                            </ul>
+                          </div>
+                        <div class="col mb-3">
+                            <h5>Section</h5>
+                            <ul class="nav flex-column">
+                              <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-white">Home</a></li>
+                              <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-white">Features</a></li>
+                              <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-white">Pricing</a></li>
+                              <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-white">FAQs</a></li>
+                              <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-white">About</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        © 2024 LOB. All rights reserved.
+                    </div>
                 </div>
-            {% else %}
-                <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
-            {% endif %}
+            </footer>
         </div>
-    </nav>
-    {% endblock %}
-
-
-    {% block content %}
-    
-    {% endblock %}
-{% comment %}    
-
-    <footer class="footer mt-auto py-3">
-        <div class="container">
-            <span class="text-muted">© 2024 LOB. All rights reserved.</span>
-        </div>
-    </footer> {% endcomment %}
-
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWawPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
     {% block scripts %}{% endblock %}
 </body>
