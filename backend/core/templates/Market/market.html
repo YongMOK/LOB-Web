@@ -55,9 +55,9 @@
                 {% for market in markets %}
                 <tr>
                     <td>{{ forloop.counter }}</td>
-                    <td>{{ market.name }}</td>
-                    <td>{{market.start_time}}</td>
-                    <td>{{ market.end_time }}</td>
+                    <td>{{ market.market_name }}</td>
+                    <td>{{market.opening_time}}</td>
+                    <td>{{ market.closing_time }}</td>
                     <td>
                         <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editMarketModal{{ market.id }}">Edit</button>
                         <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteMarketModal{{ market.id }}">Delete</button>
@@ -102,7 +102,7 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <p>Are you sure you want to delete the market <strong>{{ market.name }}</strong>?</p>
+                                <p>Are you sure you want to delete the market <strong>{{ market.market_name }}</strong>?</p>
                             </div>
                             <div class="modal-footer">
                                 <form method="post" action="{% url 'market-delete' market.id %}">

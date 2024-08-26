@@ -52,12 +52,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return True  # Simplest possible answer: Yes, always
 
 class Market(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-    start_time = models.TimeField(auto_now_add=False, blank=False, default=time(10, 30))
-    end_time = models.TimeField(auto_now_add=False, blank=False, default=time(18, 0))
+    market_name = models.CharField(max_length=50, unique=True)
+    opening_time = models.TimeField(auto_now_add=False, blank=False, default=time(10, 30))
+    closing_time = models.TimeField(auto_now_add=False, blank=False, default=time(18, 0))
     
     def __str__(self):
-        return f"Market : {self.name}, open time: {self.start_time}, end time: {self.end_time}"
+        return f"{self.market_name}"
 
 class Dataset(models.Model):
     market = models.ForeignKey(Market, related_name='datasets', on_delete=models.CASCADE)
@@ -66,7 +66,7 @@ class Dataset(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.market.name} - {self.date} - uploaded at {self.uploaded_at}"
+        return f"{self.market.market_name} - {self.date} - uploaded at {self.uploaded_at}"
 
 class ProcessedDataset(models.Model):
     dataset = models.ForeignKey(Dataset, related_name='processed_versions', on_delete=models.CASCADE)
@@ -75,13 +75,13 @@ class ProcessedDataset(models.Model):
     processed_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.dataset.market.name} - {self.dataset.date} - Processed"
+        return f"{self.dataset.market.market_name} - {self.dataset.date} - Processed"
 
 class MLModel(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    model_name = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
-        return f"{self.name} model"
+        return f"{self.model_name} model"
 class ModelParameter(models.Model):
     model = models.ForeignKey(MLModel, related_name='parameters', on_delete=models.CASCADE)
     processed_dataset = models.ForeignKey(ProcessedDataset, related_name='parameters', on_delete=models.CASCADE)
@@ -91,7 +91,7 @@ class ModelParameter(models.Model):
     k = models.IntegerField()
 
     def __str__(self):
-        return f"{self.model.name} Parameters of dataset at- {self.processed_dataset.dataset.date} - trained at - {self.trained_at}"
+        return f"{self.model.model_name} Parameters of dataset at- {self.processed_dataset.dataset.date} - trained at - {self.trained_at}"
 
 class Prediction(models.Model):
     model = models.ForeignKey(MLModel, related_name='predictions', on_delete=models.CASCADE)
@@ -100,7 +100,7 @@ class Prediction(models.Model):
     predicted_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.model.name} - {self.processed_dataset.dataset.date} -at {self.predicted_at} Predictions"
+        return f"{self.model.model_name}-at {self.predicted_at}"
 
 class Evaluation(models.Model):
     prediction = models.ForeignKey(Prediction, related_name='evaluations', on_delete=models.CASCADE)
@@ -110,7 +110,7 @@ class Evaluation(models.Model):
     evaluated_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.prediction.model.name} - {self.prediction.processed_dataset.dataset.date} - Evaluation"
+        return f"{self.prediction.model.model_name} - {self.prediction.processed_dataset.dataset.date} - Evaluation"
     
 class BestModel(models.Model):
     market = models.ForeignKey(Market, related_name='best_models', on_delete=models.CASCADE)
@@ -120,7 +120,7 @@ class BestModel(models.Model):
     save_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Best model for {self.market.name} - {self.model.name} selected at {self.save_at}"
+        return f"Best model for {self.market.market_name} - {self.model.model_name} selected at {self.save_at}"
     
 class Dataset_Prediction(models.Model):
     market = models.ForeignKey(Market, related_name='datasets_prediction', on_delete=models.CASCADE)
@@ -129,7 +129,7 @@ class Dataset_Prediction(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.market.name} - {self.predicting_file.name} - {self.date}"
+        return f"{self.market.market_name} - {self.predicting_file.name} - {self.date}"
 
 class Results_Client(models.Model):
     market = models.ForeignKey(Market, related_name='result_client', on_delete=models.CASCADE)
@@ -137,4 +137,4 @@ class Results_Client(models.Model):
     result = models.JSONField()
     upload_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):
-        return f"{self.market.name}  - predicting at {self.upload_at}"
+        return f"{self.market.market_name}  - predicting at {self.upload_at}"

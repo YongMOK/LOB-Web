@@ -1,15 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse, HttpResponseRedirect,HttpResponseBadRequest
-from .models import Market, Dataset, MLModel,ModelParameter, BestModel, Evaluation
-from django.urls import reverse
+from django.http import JsonResponse,HttpResponseBadRequest
+from .models import Market, Dataset, MLModel,ModelParameter, BestModel, Evaluation, ProcessedDataset, Prediction
 from django.views.decorators.http import require_POST
-from .forms import MarketForm, DatasetForm
+from .forms import  DatasetForm
 from .views import *
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
 import mpld3
-from mpld3 import plugins
 import numpy as np
 import pandas as pd
 from sklearn.svm import SVC
@@ -17,13 +15,13 @@ from sklearn.linear_model import RidgeClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import classification_report, confusion_matrix
 import joblib
 from datetime import datetime
 from django.conf import settings
 import os
 import json
-from django.http import StreamingHttpResponse
-from time import sleep  # For demonstration purposes
+from django.core.files.base import ContentFile
 
 def manage_datasets(request):
     markets = Market.objects.all()
@@ -34,7 +32,7 @@ def manage_datasets(request):
         if 'market' in request.POST:
             # Handle market selection
             market_name = request.POST.get('market')
-            selected_market = get_object_or_404(Market, name=market_name)
+            selected_market = get_object_or_404(Market, market_name=market_name)
             datasets = Dataset.objects.filter(market=selected_market).order_by('date')
         elif 'training_file' in request.FILES:
             # Handle dataset upload
@@ -69,35 +67,6 @@ def manage_datasets(request):
         'datasets': datasets,
         'form': form
     })
-# def main(request):
-#     markets = Market.objects.all()
-#     selected_market = None
-#     datasets = None
-#     if request.method == 'POST':
-#         market_name = request.POST.get('market')
-#         selected_market = get_object_or_404(Market, name=market_name)
-#         datasets = Dataset.objects.filter(market=selected_market)
-#     return render(request, 'main.html', 
-#                 {'markets': markets, 'selected_market': selected_market, 'datasets': datasets})
-# def model_recommendations(request, market_name):
-#     market = get_object_or_404(Market, name=market_name)
-#     models = MLModel.objects.filter(market=market)
-#     model_names = [model.name for model in models]
-#     return JsonResponse(model_names, safe=False)
-
-# def upload_dataset(request):
-#     if request.method == 'POST':
-#         market_id = request.POST.get('market')
-#         training_file = request.FILES.get('training_file')
-#         date = request.POST.get('date')
-        
-#         if market_id and training_file and date:
-#             market = get_object_or_404(Market, pk=market_id)
-#             Dataset.objects.create(market=market, training_file=training_file, date=date)
-#             return redirect('main')
-#         else:
-#             return render(request, 'main.html', {'error': 'All fields are required'})
-#     return redirect('main')
     
 def train(request):
     markets = Market.objects.all()
@@ -107,7 +76,7 @@ def train(request):
     print("Model", models)
     if request.method == 'POST':
         market_name = request.POST.get('market')
-        selected_market = get_object_or_404(Market, name=market_name)
+        selected_market = get_object_or_404(Market, market_name=market_name)
         data_sets = Dataset.objects.filter(market=selected_market).order_by("date")
     return render(request, 'Train/train.html', 
             {'markets': markets,
@@ -152,7 +121,7 @@ def find_best_k(request, market_name):
 def get_datasets(request, market_name):
     if request.method == 'GET':
         try:
-            market = get_object_or_404(Market, name=market_name)
+            market = get_object_or_404(Market, market_name=market_name)
             datasets = Dataset.objects.filter(market=market).order_by('date')
             dataset_list = []
             for dataset in datasets:
@@ -204,7 +173,7 @@ def preprocess_train(request, dataset_id):
 @require_POST
 def incremental_train_model(request, market_name, model_name):
     try:
-        market = get_object_or_404(Market, name=market_name)
+        market = get_object_or_404(Market, market_name=market_name)
         datasets = Dataset.objects.filter(market=market).order_by('date')
         k = int(request.POST.get('k'))
         print("K =", k)
@@ -298,7 +267,7 @@ def incremental_train_model(request, market_name, model_name):
                 continue
 
             # Save prediction
-            model_object = get_object_or_404(MLModel, name=model_name) 
+            model_object = get_object_or_404(MLModel, model_name=model_name) 
             prediction = Prediction.objects.create(
                 model=model_object,
                 processed_dataset=processed_test_dataset,
@@ -318,7 +287,7 @@ def incremental_train_model(request, market_name, model_name):
             model_file_path = os.path.join(settings.MEDIA_ROOT, "trained_models", model_filename)
             joblib.dump(model, model_file_path)
 
-            ml_model_instance, created = MLModel.objects.get_or_create(name=model_name)
+            ml_model_instance, created = MLModel.objects.get_or_create(model_name=model_name)
             with open(model_file_path, 'rb') as model_file:
                 ModelParameter.objects.create(
                     model=ml_model_instance,
@@ -358,8 +327,8 @@ def save_best_model(request):
         evaluation_id = request.POST.get('evaluation')
         best_k = request.POST.get('best_k')
 
-        market = get_object_or_404(Market, name=market_name)
-        model = get_object_or_404(MLModel, name=model_name)
+        market = get_object_or_404(Market, market_name=market_name)
+        model = get_object_or_404(MLModel, model_name=model_name)
         evaluation = get_object_or_404(Evaluation, id=evaluation_id)
 
         best_model = BestModel(market=market, model=model, evaluation=evaluation, best_k= best_k)

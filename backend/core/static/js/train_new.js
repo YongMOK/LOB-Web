@@ -280,14 +280,16 @@ document.addEventListener('DOMContentLoaded', function () {
             modelCell.innerText = model;
             row.appendChild(modelCell);
             //create cells for other metrics
-            ['accuracy', 'precision', 'recall', 'f1Score', 'score'].forEach(key => {
-                row.appendChild(createTableCell(metrics[key]?.toFixed(2) || '0.00'));
+            ['accuracy', 'precision', 'recall', 'f1Score', 'Score'].forEach(key => {
+                if (key === 'Score') {
+                    // Create the 'Score' cell
+                    row.appendChild(createTableCell(score.toFixed(2)));
+                } else {
+                    row.appendChild(createTableCell(metrics[key]?.toFixed(2)));
+                }
             });
-            // Create the 'Score' cell
-            row.appendChild(createTableCell(score.toFixed(2)));
             table.appendChild(row);
         });
-
         return table;
     }
 

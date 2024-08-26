@@ -10,7 +10,7 @@
                 <label for="market">Market:</label>
                 <select class="form-control" id="market" name="market" required>
                     {% for market in markets %}
-                        <option value="{{ market.name }}" {% if selected_market and selected_market.name == market.name %}selected{% endif %}>{{ market.name }}</option>
+                        <option value="{{ market.market_name }}" {% if selected_market and selected_market.market_name == market.market_name %}selected{% endif %}>{{ market.market_name }}</option>
                     {% endfor %}
                 </select>
                 <button type="submit" class="btn btn-primary mt-3">Show Datasets</button>
@@ -23,7 +23,7 @@
     {% if selected_market %}
         {% if datasets %}
             <div class="mt-4">
-                <h2>Datasets for {{ selected_market.name }}:</h2>
+                <h2>Datasets for {{ selected_market.market_name }}:</h2>
                 <p>You can also upload a new dataset for this market:</p>
                 <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#uploadDatasetModal">Upload Dataset</button>
                 <table class="table table-striped">
@@ -82,7 +82,7 @@
             </div>
         {% else %}
             <div class="mt-4">
-                <h2>Datasets for {{ selected_market.name }}:</h2>
+                <h2>Datasets for {{ selected_market.market_name }}:</h2>
                 <p>No datasets available for this market.</p>
                 <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#uploadDatasetModal">Upload Dataset</button>
             </div>

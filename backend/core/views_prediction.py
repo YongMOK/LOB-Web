@@ -16,9 +16,12 @@ def prediction(request):
 
     if request.method == 'POST':
         market_name = request.POST.get('market')
-        selected_market = get_object_or_404(Market, name=market_name)
+        selected_market = get_object_or_404(Market, market_name=market_name)
         datasets = Dataset.objects.filter(market=selected_market).order_by("date")
-        best_model = BestModel.objects.filter(market=selected_market).latest('save_at')
+        try:
+            best_model = BestModel.objects.filter(market=selected_market).latest('save_at')
+        except ObjectDoesNotExist:
+            best_model = None
 
     return render(request, 'prediction/prediction.html', {
         'markets': markets,
@@ -34,7 +37,7 @@ def upload_predictions(request):
         k = int(request.POST.get('best_k'))
         prediction_file = request.FILES.get('predicting_file')
         if prediction_file and market_name:
-            market = get_object_or_404(Market, name = market_name)
+            market = get_object_or_404(Market, market_name = market_name)
             print("Uploading prediction",prediction_file)
             try:
                 print('Error..........')
@@ -68,7 +71,7 @@ def upload_predictions(request):
 
 def predictions_model(model_name, X_test, k):
     try:
-        ml_model = get_object_or_404(MLModel, name=model_name)
+        ml_model = get_object_or_404(MLModel, model_name=model_name)
         latest_model_parameter = ModelParameter.objects.filter(model=ml_model, k=k).latest('trained_at')
 
         if not latest_model_parameter:

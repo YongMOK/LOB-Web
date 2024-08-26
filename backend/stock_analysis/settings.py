@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -37,13 +37,13 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For developm
 AUTH_USER_MODEL = 'core.CustomUser'
 
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'Europe/Paris'
-CELERY_ENABLE_UTC = False
+# CELERY_BROKER_URL = 'redis://localhost:6379/0'
+# CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+# CELERY_ACCEPT_CONTENT = ['json']
+# CELERY_TASK_SERIALIZER = 'json'
+# CELERY_RESULT_SERIALIZER = 'json'
+# CELERY_TIMEZONE = 'Europe/Paris'
+# CELERY_ENABLE_UTC = False
 
 
 
@@ -61,22 +61,22 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework",
-    "corsheaders",
-    "rest_framework_simplejwt",
+    # "rest_framework",
+    # "corsheaders",
+    # "rest_framework_simplejwt",
     "core",
-    "channels",
-    "django_celery_beat"
+    # "channels",
+    # "django_celery_beat"
 ]
 # Configure channel layers (e.g., Redis)
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("localhost", 6379)],
-        },
-    },
-}
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [("localhost", 6379)],
+#         },
+#     },
+# }
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -90,12 +90,12 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ),
-}
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework.authentication.SessionAuthentication',
+#         'rest_framework.authentication.BasicAuthentication',
+#     ),
+# }
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -112,6 +112,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.i18n",
+
             ],
         },
     },
@@ -176,6 +178,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 # Media files (user-uploaded files)
 MEDIA_URL = '/media/' #his is set to /media/, which means that any files uploaded by users will be accessible via URLs that start with /media/.
@@ -225,10 +228,12 @@ JAZZMIN_SETTINGS = {
     # Links to put along the top menu
     "topmenu_links": [
         {"name": "Admin", "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "Datasets", "url": "dataset-list", "permissions": ["auth.view_user"]},
-        {"name": "Train", "url": "train", "permissions": ["auth.view_user"]},
-        {"name": "Prediction", "url": "predictions", "permissions": ["auth.view_user"]},
-        {"name": "Result", "url": "client_result", "permissions": ["auth.view_user"]},
+        # {"name": "Market", "url": "market-list", "permissions": ["auth.view_user"]},
+        # {"name": "Datasets", "url": "dataset-list", "permissions": ["auth.view_user"]},
+        # {"name": "Train", "url": "train", "permissions": ["auth.view_user"]},
+        # {"name": "Prediction", "url": "predictions", "permissions": ["auth.view_user"]},
+        # {"name": "Result", "url": "client_result", "permissions": ["auth.view_user"]},
+        {"name": "Go To Page", "url": "home", "permissions": ["auth.view_user"]},
         {"model": "auth.User"},
     ],
     
@@ -264,7 +269,16 @@ JAZZMIN_SETTINGS = {
         "auth.user": "fas fa-user",
         "auth.Group": "fas fa-users",
         "core.CustomUser": "fas fa-user-shield",
-        "core.Dataset": "fas fa-solid fa-file",
+        "core.Dataset": "fas fa-database",
+        "core.ProcessedDataset": "fas fa-cogs",
+        "core.MLModel": "fas fa-robot",
+        "core.ModelParameter": "fas fa-sliders-h",
+        "core.Prediction": "fas fa-chart-line",
+        "core.Evaluation": "fas fa-check-circle",
+        "core.BestModel": "fas fa-trophy",
+        "core.Market": "fas fa-store",
+        "core.Dataset_Prediction": "fas fa-file-alt",
+        "core.Results_Client": "fas fa-file-signature",
     },
     
     # Icons that are used when one is not manually specified
@@ -285,7 +299,7 @@ JAZZMIN_SETTINGS = {
     # Whether to link font from fonts.googleapis.com (use custom_css to supply font otherwise)
     "use_google_fonts_cdn": True,
     # Whether to show the UI customizer on the sidebar
-    "show_ui_builder": False,
+    "show_ui_builder": True,
 
     ###############
     # Change view #

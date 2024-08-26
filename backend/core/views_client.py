@@ -4,9 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from datetime import datetime, timedelta
 import pandas as pd
-import os
 from django.core.files.base import ContentFile
-from io import StringIO
 from .views import clean_dataframe, normalize_dataframe, feature_for_k_events
 from .helpers import generate_order_book
 from .views_prediction import predictions_model, save_results_to_client, create_result_dataframe
@@ -23,7 +21,7 @@ def client(request):
 
     if request.method == 'POST':
         market_name = request.POST.get('market')
-        selected_market = get_object_or_404(Market, name=market_name)
+        selected_market = get_object_or_404(Market, market_name=market_name)
         #results = generate_and_predict_real_time(selected_market)
         try:
             results = Results_Client.objects.filter(market=selected_market).latest("upload_at")
