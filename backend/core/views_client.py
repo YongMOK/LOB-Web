@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from .models import Market, Dataset_Prediction, BestModel, Results_Client
+from .models import Market, DatasetPrediction, BestModel, ResultsClient
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from datetime import datetime, timedelta
@@ -24,8 +24,8 @@ def client(request):
         selected_market = get_object_or_404(Market, market_name=market_name)
         #results = generate_and_predict_real_time(selected_market)
         try:
-            results = Results_Client.objects.filter(market=selected_market).latest("upload_at")
-        except Results_Client.DoesNotExist:
+            results = ResultsClient.objects.filter(market=selected_market).latest("upload_at")
+        except ResultsClient.DoesNotExist:
             results = None
 
     return render(request, 'prediction/client_result.html', {
@@ -41,12 +41,12 @@ def generate_and_predict_real_time(market):
     time_now = timezone.now()
 
     try:
-        predictions_dataset = Dataset_Prediction.objects.filter(market=market, date=today_date).latest("uploaded_at")
+        predictions_dataset = DatasetPrediction.objects.filter(market=market, date=today_date).latest("uploaded_at")
         #print("predictions_dataset",predictions_dataset)
         if not predictions_dataset:
-            raise Dataset_Prediction.DoesNotExist("No prediction dataset available for today.")
+            raise DatasetPrediction.DoesNotExist("No prediction dataset available for today.")
 
-        results = Results_Client.objects.filter(market=market, dataset_prediction = predictions_dataset).latest("upload_at")
+        results = ResultsClient.objects.filter(market=market, dataset_prediction = predictions_dataset).latest("upload_at")
         print("Result",results)
         # results_last_time = timezone.make_aware(datetime.fromisoformat(results.result["timestamp"][-2]))
         # Assuming results.result["timestamp"] is a list of ISO formatted date strings
@@ -66,7 +66,7 @@ def generate_and_predict_real_time(market):
         df_existing = pd.read_csv(predictions_dataset.predicting_file.path)
         last_timestamp = results_last_time
 
-    except Dataset_Prediction.DoesNotExist:
+    except DatasetPrediction.DoesNotExist:
         df_existing = pd.DataFrame()
         last_timestamp = datetime.combine(today_date, market.start_time)
     print("results last time",results_last_time)   

@@ -278,8 +278,8 @@ JAZZMIN_SETTINGS = {
         "core.Evaluation": "fas fa-check-circle",
         "core.BestModel": "fas fa-trophy",
         "core.Market": "fas fa-store",
-        "core.Dataset_Prediction": "fas fa-file-alt",
-        "core.Results_Client": "fas fa-file-signature",
+        "core.DatasetPrediction": "fas fa-file-alt",
+        "core.ResultsClient": "fas fa-file-signature",
     },
     
     # Icons that are used when one is not manually specified

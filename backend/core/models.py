@@ -122,7 +122,7 @@ class BestModel(models.Model):
     def __str__(self):
         return f"Best model for {self.market.market_name} - {self.model.model_name} selected at {self.save_at}"
     
-class Dataset_Prediction(models.Model):
+class DatasetPrediction(models.Model):
     market = models.ForeignKey(Market, related_name='datasets_prediction', on_delete=models.CASCADE)
     predicting_file = models.FileField(upload_to="datasets_prediction/", validators=[FileExtensionValidator(['csv', 'txt'])])
     date = models.DateField(default=timezone.now)
@@ -131,9 +131,9 @@ class Dataset_Prediction(models.Model):
     def __str__(self):
         return f"{self.market.market_name} - {self.predicting_file.name} - {self.date}"
 
-class Results_Client(models.Model):
+class ResultsClient(models.Model):
     market = models.ForeignKey(Market, related_name='result_client', on_delete=models.CASCADE)
-    dataset_prediction = models.ForeignKey(Dataset_Prediction,related_name='result_client', on_delete=models.CASCADE)
+    dataset_prediction = models.ForeignKey(DatasetPrediction,related_name='result_client', on_delete=models.CASCADE)
     result = models.JSONField()
     upload_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):

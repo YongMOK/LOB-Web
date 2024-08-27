@@ -2,8 +2,14 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
+from django.http import JsonResponse
+import pandas as pd
+import plotly.express as px
+import plotly.io as pio
+import json
+from django.utils.safestring import mark_safe
 from .models import (CustomUser,Market, Dataset, ProcessedDataset, MLModel, ModelParameter, 
-                     Prediction, Evaluation, BestModel, Dataset_Prediction, Results_Client)
+                     Prediction, Evaluation, BestModel, DatasetPrediction, ResultsClient)
 
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
@@ -124,7 +130,8 @@ class CustomEvaluationAdmin(admin.ModelAdmin):
 class CustomBestModelAdmin(admin.ModelAdmin):
     list_display = ['market_name', 'model_name', 'best_k', 'save_at']
     list_filter = ['market__market_name']
-    readonly_fields = ('market_name', 'model_name', 'best_k','save_at','evaluation_details')
+    readonly_fields = ['evaluation_details']
+
     
     
     @admin.display(description='Evaluation Details')
@@ -166,7 +173,6 @@ class CustomBestModelAdmin(admin.ModelAdmin):
 
 class CustomDatasetPredictionAdmin(admin.ModelAdmin):
     list_display = ['market_name', 'predicting_file_name', 'date', 'uploaded_at']
-
     def market_name(self, obj):
         return obj.market.market_name
     market_name.short_description = 'Market Name'
@@ -177,6 +183,55 @@ class CustomDatasetPredictionAdmin(admin.ModelAdmin):
 
 class CustomResultsClientAdmin(admin.ModelAdmin):
     list_display = ['market_name', 'prediction_file_name', 'upload_at']
+    readonly_fields = ['result_as_dataframe']
+
+    def result_as_dataframe(self, obj):
+        try:
+            # Load the JSON data from the result field
+            result_data = json.loads(obj.result)
+            
+            # Convert the list of dictionaries to a DataFrame
+            df = pd.DataFrame(result_data)
+            
+            # Convert the DataFrame to an HTML table
+            df_html = df.to_html(classes="table table-striped", index=False)
+            
+            # Create an interactive line plot with Plotly
+            fig = px.line(
+                df,
+                x = pd.to_datetime(df['timestamp'], unit='ms'),
+                y='prediction',
+                title = 'Prediction accumulation Over Time',
+                labels={'x':'Time', 'y':'Prediction acc value'}
+            )
+            
+            fig.update_layout(
+                autosize = True,
+                margin=dict(l=30, r=30, t=30, b=30),
+                xaxis_title='Time',
+                yaxis_title='Prediction acc value',
+            )
+            
+            # Convert the Plotly figure to HTML
+            graph_html = pio.to_html(fig, full_html=False, config={'scrollZoom': True, 'displayModeBar': True, 'displaylogo': False, 'modeBarButtonsToRemove': ['lasso2d']})
+            
+            # Combine the scrollable table and the interactive graph
+            combined_html = f'''
+                <div style="max-height: 400px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px;">
+                    {df_html}
+                </div>
+                <div style="margin-top: 20px;">
+                    {graph_html}
+                </div>
+            '''
+            
+            # Use mark_safe to allow HTML rendering in the admin interface
+            return mark_safe(combined_html)
+        except (ValueError, TypeError) as e:
+            # Handle errors gracefully
+            return mark_safe(f"<p>Error displaying data: {e}</p>")
+
+    result_as_dataframe.short_description = "Result as DataFrame"
 
     def market_name(self, obj):
         return obj.market.market_name
@@ -185,6 +240,7 @@ class CustomResultsClientAdmin(admin.ModelAdmin):
     def prediction_file_name(self, obj):
         return obj.dataset_prediction.predicting_file.name.split('/')[-1]
     prediction_file_name.short_description = 'Prediction File Name'
+
 
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(Market, CustomMarketAdmin)
@@ -195,5 +251,5 @@ admin.site.register(ModelParameter, CustomModelParameterAdmin)
 admin.site.register(Prediction, CustomPredictionAdmin)
 admin.site.register(Evaluation, CustomEvaluationAdmin)
 admin.site.register(BestModel, CustomBestModelAdmin)
-admin.site.register(Dataset_Prediction, CustomDatasetPredictionAdmin)
-admin.site.register(Results_Client, CustomResultsClientAdmin)
+admin.site.register(DatasetPrediction, CustomDatasetPredictionAdmin)
+admin.site.register(ResultsClient, CustomResultsClientAdmin)

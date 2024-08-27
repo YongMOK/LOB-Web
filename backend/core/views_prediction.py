@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from .models import Market, Dataset, MLModel, ModelParameter, BestModel, Results_Client, Dataset_Prediction
+from .models import Market, Dataset, MLModel, ModelParameter, BestModel, ResultsClient, DatasetPrediction
 import numpy as np
 import pandas as pd
 import joblib
@@ -47,7 +47,7 @@ def upload_predictions(request):
                     data = read_txt(prediction_file)
 
                 # Preprocess dataset
-                dataset_prediction = Dataset_Prediction.objects.create(market=market, predicting_file=prediction_file)
+                dataset_prediction = DatasetPrediction.objects.create(market=market, predicting_file=prediction_file)
                 print(data)
                 df_cleaned = clean_dataframe(data)
                 df_normalized = normalize_dataframe(df_cleaned)
@@ -114,4 +114,4 @@ def create_result_dataframe(timestamps, predictions, k):
 
 
 def save_results_to_client(market, dataset_prediction, results):
-    Results_Client.objects.create(market=market, dataset_prediction = dataset_prediction, result=results.to_json(orient='records'))
+    ResultsClient.objects.create(market=market, dataset_prediction = dataset_prediction, result=results.to_json(orient='records'))

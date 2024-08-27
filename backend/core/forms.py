@@ -33,3 +33,4 @@ class PredictModelForm(forms.Form):
     dataset_id = forms.ModelChoiceField(queryset=Dataset.objects.all(), label="Dataset")
     k_value = forms.IntegerField(label="K Value", min_value=1, max_value=100)
     
+
