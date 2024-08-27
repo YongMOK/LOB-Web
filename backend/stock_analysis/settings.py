@@ -54,6 +54,7 @@ CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 # Application definition
 
 INSTALLED_APPS = [
+    "crispy_forms",
     "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -100,7 +101,7 @@ MIDDLEWARE = [
 CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = "stock_analysis.urls"
-
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",

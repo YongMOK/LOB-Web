@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
 from .models import Market, Dataset, MLModel, CustomUser
 
 class MarketForm(forms.ModelForm):
@@ -19,6 +19,13 @@ class CustomUserCreationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = CustomUser
         fields = ('email', 'first_name', 'last_name')
+        
+class UserSettingsForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'first_name', 'last_name']
+class ChangePasswordForm(PasswordChangeForm):
+    pass
     
 class PredictModelForm(forms.Form):
     market_name = forms.ModelChoiceField(queryset=Market.objects.all(), label="Market")

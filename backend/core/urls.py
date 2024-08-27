@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from .views import (
     MarketViewSet
 )
-from . import views_train, views_prediction,views_log_in_out,views_home, views_client
+from . import views_train, views_prediction,views_log_in_out,views_home, views_client, views_profile
 from django.contrib.auth.views import (
     LogoutView, 
     PasswordResetView, 
@@ -25,6 +25,8 @@ urlpatterns = [
     path('password_reset_done/', PasswordResetDoneView.as_view(template_name='Login_out/password_reset_done.html'), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', PasswordResetConfirmView.as_view(template_name='Login_out/password_reset_confirm.html'), name='password_reset_confirm'),
     path('reset/complete/', PasswordResetCompleteView.as_view(template_name='Login_out/password_reset_complete.html'), name='password_reset_complete'),
+    path('profile/', views_profile.profile_view, name='profile'),
+    path('settings/', views_profile.settings_view, name='settings'),
     path('markets/', admin_required(MarketViewSet.as_view({'get': 'list'})), name='market-list'),
     path('markets/add/', admin_required(MarketViewSet.as_view({'post': 'add_market'})), name='add_market'),
     path('markets/<int:pk>/edit/', admin_required(MarketViewSet.as_view({'post': 'edit_market'})), name='market-edit'),
