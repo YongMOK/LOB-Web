@@ -48,7 +48,6 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .finally(() => {
                 // Hide loading spinner
-                const loadingSpinner = document.getElementById("loadingSpinner");
                 loadingSpinner.style.display = "none";
             });
     }

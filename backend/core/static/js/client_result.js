@@ -2,19 +2,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Get the results JSON data from the script tag
     const resultsScript = document.getElementById('resultsData');
     const results = JSON.parse(resultsScript.textContent || '{}');
-    console.log(results);
+    console.log("Parsed results:", results);
 
-    if (results.length > 0) {
+    if (Array.isArray(results) && results.length > 0) {
         plot_results(results);
+    } else {
+        console.error("No valid results to plot or results are not in an array format.");
     }
 });
 
 function plot_results(results) {
-    if (!Array.isArray(results)) {
-        console.error("Results is not an array:", results);
-        return;
-    }
-    
     const chartData = results.map((item) => [
         new Date(item.timestamp).getTime(),
         item.prediction,
@@ -54,12 +51,10 @@ function plot_results(results) {
         }],
         xAxis: {
             type: 'datetime',
-            min: Math.min(new Date(results[0].timestamp).getTime(), new Date().getTime() - 3600 * 1000), // 1 hour before current or dataset start
-            max: Math.max(new Date(results[results.length - 1].timestamp).getTime(), new Date(results[results.length - 1].timestamp).getTime() + 180 * 1000), 
-            plotLines: [{
-                color: 'red', // Color of the current time line
+            plotLines: chartData.length > 1 ? [{
+                color: 'red',
                 width: 2,
-                value: new Date().getTime(), // Current time
+                value: new Date().getTime(),
                 dashStyle: 'Dash',
                 label: {
                     text: 'Current Time',
@@ -69,9 +64,9 @@ function plot_results(results) {
                     }
                 }
             }, {
-                color: 'blue', // Color of the line for the second-to-last timestamp
+                color: 'blue',
                 width: 2,
-                value: results[results.length - 2].timestamp, // Second-to-last result timestamp
+                value: results[results.length - 2].timestamp,
                 dashStyle: 'Dash',
                 label: {
                     text: 'Actual Time',
@@ -80,14 +75,14 @@ function plot_results(results) {
                         color: 'blue'
                     }
                 }
-            }]
+            }] : [],
         },
         yAxis: {
             title: {
                 text: 'Accumulated Movement'
             },
-            min: Math.min(...results.map(item => item.prediction)) - 1, // Adding buffer for aesthetics
-            max: Math.max(...results.map(item => item.prediction)) + 1, // Adding buffer for aesthetics
+            min: Math.min(...results.map(item => item.prediction)) - 1,
+            max: Math.max(...results.map(item => item.prediction)) + 1,
         },
         navigator: {
             enabled: true
@@ -99,20 +94,4 @@ function plot_results(results) {
             enabled: false
         }
     });
-}
-
-// Function to get the CSRF token from the cookies
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
 }

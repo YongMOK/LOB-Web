@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Result{% endblock %}
+{% block title %}Result Prediction{% endblock %}
 {% block head %}
 <style>
     /* Style for the canvas container */
@@ -34,7 +34,7 @@
             <label for="market" class="form-label">Market:</label>
             <select class="form-select" id="market" name="market" required>
                 {% for market in markets %}
-                    <option value="{{ market.name }}" {% if selected_market and selected_market.name == market.name %}selected{% endif %}>{{ market.name }}</option>
+                    <option value="{{ market.market_name }}" {% if selected_market and selected_market.market_name == market.market_name %}selected{% endif %}>{{ market.market_name }}</option>
                 {% endfor %}
             </select>
             <button type="submit" class="btn btn-primary mt-3">Select</button>
@@ -46,12 +46,12 @@
             {% if datasets %}
                 <p>There are {{ datasets|length }} datasets in this market from {{ datasets.0.date }} to {{ datasets.last.date }}.</p>
                 {% if best_model %}
-                    <p>Best model for this market is {{ best_model.model.name }} with best_k equal to {{best_model.best_k}}, last trained at {{ best_model.save_at }}</p>
+                    <p>Best model for this market is {{ best_model.model.model_name }} with best_k equal to {{best_model.best_k}}, last trained at {{ best_model.save_at }}</p>
                     <div>
                         <form id="uploadForm" method="post" enctype="multipart/form-data">
                             {% csrf_token %}
-                            <input type="hidden" name="market_name" value="{{ selected_market.name }}">
-                            <input type="hidden" name="best_model" value="{{ best_model.model.name }}">
+                            <input type="hidden" name="market_name" value="{{ selected_market.market_name }}">
+                            <input type="hidden" name="best_model" value="{{ best_model.model.model_name }}">
                             <input type="hidden" id = "best_k" name="best_k" value={{best_model.best_k}}>
                             <div class="mb-3">
                                 <label for="predicting_file" class="form-label">Predicting File:</label>
