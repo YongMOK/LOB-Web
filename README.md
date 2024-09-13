@@ -39,6 +39,7 @@ Ensure you have the following installed:
    ```
 
 6. **Create a superuser for testing:**
+   
    Before starting you can create a superuser for testing with our own computer as an admin.
    ```sh
    python manage.py createsuperuser
