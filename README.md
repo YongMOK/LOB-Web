@@ -1,6 +1,8 @@
-# LOB- Limit order books project
+# LOB - Limit Order Books Project
 
-There are three branchs, the first one is the oldes version, second is improvement version and the last one is the newest version.
+This is a limit order book website project that allows users to train and predict models without coding.
+
+There are three branches: the first one is the oldest version, the second is an improved version, and the last one is the newest version.
 
 ### Prerequisites
 
@@ -20,6 +22,7 @@ Ensure you have the following installed:
 2. **Create and activate a virtual environment (optional but recommended):**
    ```sh
    python -m venv venv
+   source venv/bin/activate  # On macOS/Linux
    venv\Scripts\activate  # On Windows
    ```
 
@@ -39,13 +42,14 @@ Ensure you have the following installed:
    ```
 
 6. **Create a superuser for testing:**
-   
-   Before starting you can create a superuser for testing with our own computer as an admin.
+
+   Before starting, you can create a superuser for testing with your own computer as an admin.
    ```sh
    python manage.py createsuperuser
    ```
 
-8. **Run the development server:**
+7. **Run the development server:**
    ```sh
    python manage.py runserver
    ```
+
