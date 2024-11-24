@@ -1,4 +1,4 @@
-# LOB - Limit Order Books Project
+# LOB - Limit Order Books ML Devops Project
 
 This is a limit order book website project that allows users to train and predict models without coding.
 
