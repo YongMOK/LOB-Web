@@ -2,6 +2,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
+from django.urls import path
 from django.http import JsonResponse
 import pandas as pd
 import plotly.express as px
