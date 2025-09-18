@@ -26,29 +26,24 @@ Ensure you have the following installed:
    venv\Scripts\activate  # On Windows
    ```
 
-3. **Generate a `requirements.txt` file if it doesn't exist:**
-   ```sh
-   pip freeze > requirements.txt
-   ```
-
-4. **Install the required packages:**
+3. **Install the required packages:**
    ```sh
    pip install -r requirements.txt
    ```
 
-5. **Apply database migrations:**
+4. **Apply database migrations:**
    ```sh
    python manage.py migrate
    ```
 
-6. **Create a superuser for testing:**
+5. **Create a superuser for testing:**
 
    Before starting, you can create a superuser for testing with your own computer as an admin.
    ```sh
    python manage.py createsuperuser
    ```
 
-7. **Run the development server:**
+6. **Run the development server:**
    ```sh
    python manage.py runserver
    ```
