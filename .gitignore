@@ -2,8 +2,8 @@
 *
 
 # But not these directories
-!/backend/
-!/frontend/
+!/LOB-Web-App/
+requirements.txt
 
 
 # Optionally, ignore media files  within web
